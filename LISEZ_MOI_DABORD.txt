@@ -1,0 +1,43 @@
+SMARTSHOP - SITE E-COMMERCE DJANGO DE DEMONSTRATION
+
+IMPORTANT: Cette archive contient un projet complet, et pas uniquement des morceaux de code.
+Les photos/illustrations locales se trouvent dans static/images/produits/ (12 fichiers JPG).
+Le menu contient Accueil, Produits, Panier, Connexion, Inscription.
+Le site comprend les pages accueil, catalogue, fiche produit, panier, commande simulee, historique de commandes et administration.
+
+INSTALLATION WINDOWS:
+1. Fermer l'ancien serveur Django avec Ctrl+C.
+2. Renommer votre ancien dossier Desktop\SmartShop en SmartShop_ancien (ne pas l'effacer).
+3. Extraire cette archive sur le Bureau. Le chemin final doit etre Desktop\SmartShop\manage.py.
+4. Ouvrir le dossier SmartShop dans VS Code.
+5. Double-cliquer sur INSTALLER_WINDOWS.cmd (connexion Internet necessaire pour pip).
+6. Dans le navigateur ouvrir http://127.0.0.1:8000/ .
+7. Pour creer un administrateur, ouvrir un autre CMD dans le dossier SmartShop et lancer :
+   env\Scripts\activate
+   python manage.py createsuperuser
+   Administration: http://127.0.0.1:8000/admin/
+
+COMMANDES CMD MANUELLES:
+cd /d "%USERPROFILE%\Desktop\SmartShop"
+py -3 -m venv env
+env\Scripts\activate
+python -m pip install -r requirements.txt
+copy .env.example .env
+python manage.py makemigrations boutique analytics
+python manage.py migrate
+python manage.py produits_demo
+python manage.py check
+python manage.py runserver
+
+SI VOUS VOYEZ ENCORE L'ANCIEN MENU SANS PANIER:
+- Vous avez probablement demarre l'ancien projet ou un autre serveur.
+- Fermez tous les anciens serveurs Django avec Ctrl+C.
+- Verifiez que vous etes dans le nouveau dossier avec 'cd' et 'dir'.
+- Ouvrez http://127.0.0.1:8000/ et faites Ctrl+F5.
+
+SMARTCUSTOMER ANALYTICS:
+- Le projet SmartShop enregistre des evenements de navigation apres consentement.
+- Le module d'envoi existe, mais la connexion n'est PAS active tant que l'API de reception n'est pas creee dans SmartCustomer.
+- Lisez INTEGRATION_SMARTCUSTOMER.md ; ne supposez pas que la page /dashboard/ est une API.
+
+ATTENTION: Commandes et paiement = SIMULATION. Pas de vrai paiement Wave/Orange Money.
