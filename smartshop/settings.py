@@ -16,11 +16,12 @@ MIDDLEWARE=['django.middleware.security.SecurityMiddleware','whitenoise.middlewa
 ROOT_URLCONF='smartshop.urls'
 TEMPLATES=[{'BACKEND':'django.template.backends.django.DjangoTemplates','DIRS':[BASE_DIR/'templates'],'APP_DIRS':True,'OPTIONS':{'context_processors':['django.template.context_processors.debug','django.template.context_processors.request','django.contrib.auth.context_processors.auth','django.contrib.messages.context_processors.messages','boutique.context_processors.cart_count']}}]
 WSGI_APPLICATION='smartshop.wsgi.application'
+DATABASE_URL=os.getenv('DATABASE_URL','').strip()
 DATABASES={
     'default': dj_database_url.config(
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        default=DATABASE_URL or f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
         conn_max_age=600,
-        ssl_require=not DEBUG,
+        ssl_require=not DEBUG and DATABASE_URL.startswith(('postgres://','postgresql://')),
     )
 }
 AUTH_PASSWORD_VALIDATORS=[{'NAME':'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},{'NAME':'django.contrib.auth.password_validation.MinimumLengthValidator'},{'NAME':'django.contrib.auth.password_validation.CommonPasswordValidator'},{'NAME':'django.contrib.auth.password_validation.NumericPasswordValidator'}]
