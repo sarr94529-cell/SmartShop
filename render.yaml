@@ -14,8 +14,6 @@ services:
         value: "0"
       - key: DJANGO_ALLOWED_HOSTS
         value: ".onrender.com"
-      - key: DATABASE_URL
-        sync: false
       - key: SMARTCUSTOMER_API_URL
         value: https://smartcustomer-analytics.onrender.com/api/smartshop/evenements/
       - key: SMARTCUSTOMER_API_TOKEN

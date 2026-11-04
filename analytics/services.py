@@ -1,4 +1,5 @@
 from .models import EvenementNavigation
+from .delivery import transmettre_evenement
 
 def enregistrer_evenement(request,type_evenement,produit_id=None,commande_id=None,valeur=None):
     # Respect du choix explicite de consentement analytique.
@@ -6,7 +7,7 @@ def enregistrer_evenement(request,type_evenement,produit_id=None,commande_id=Non
         return None
     if not request.session.session_key:
         request.session.create()
-    return EvenementNavigation.objects.create(
+    event = EvenementNavigation.objects.create(
         utilisateur=request.user if request.user.is_authenticated else None,
         session_id=request.session.session_key,
         type_evenement=type_evenement,
@@ -15,3 +16,5 @@ def enregistrer_evenement(request,type_evenement,produit_id=None,commande_id=Non
         commande_id=commande_id,
         valeur=valeur,
     )
+    transmettre_evenement(event)
+    return event

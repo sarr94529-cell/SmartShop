@@ -1,6 +1,6 @@
 # Liaison SmartShop et SmartCustomer Analytics
 
-SmartShop enregistre les événements uniquement après consentement et les envoie ensuite à l'API SmartCustomer par une commande Django. Le jeton reste côté serveur ; ne l'ajoutez jamais au JavaScript du navigateur.
+SmartShop enregistre les événements uniquement après consentement, puis les transmet immédiatement au serveur SmartCustomer. Le jeton reste côté serveur ; ne l'ajoutez jamais au JavaScript du navigateur.
 
 ## Configuration
 
@@ -15,13 +15,15 @@ Dans les variables d'environnement du service SmartCustomer sur Render, définir
 
 ## Transmission
 
-La commande `envoyer_evenements` envoie au plus 100 événements non transmis par exécution. Elle peut être relancée sans dupliquer les événements : SmartCustomer déduplique à partir de `event_id`.
+Chaque événement accepté est envoyé immédiatement. Si l'API n'est pas disponible, il reste marqué comme non transmis dans la base SmartShop et la commande suivante permet de réessayer jusqu'à 100 événements :
 
 ```cmd
 python manage.py envoyer_evenements
 ```
 
-Planifiez cette commande périodiquement sur le serveur SmartShop en production. En local, elle permet de vérifier la liaison avec l'API Render. Un événement n'est marqué comme transmis qu'après une réponse HTTP réussie ; les échecs restent disponibles pour réessai.
+Un événement n'est marqué comme transmis qu'après une réponse HTTP réussie ; les échecs sont consignés dans les journaux et restent disponibles pour réessai. SmartCustomer déduplique les nouvelles tentatives à partir de `event_id`.
+
+Sur Render, ne configurez pas SmartShop avec l'URL de base de données `smartcustomer-db` : les deux applications Django auraient des tables partagées. Sans base dédiée, SmartShop utilise SQLite temporaire ; les événements transmis restent stockés dans la base SmartCustomer, mais les événements en attente et les données de commande SmartShop peuvent être perdus au redémarrage du service.
 
 ## Données envoyées
 

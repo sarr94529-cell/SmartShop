@@ -2,9 +2,12 @@ from unittest.mock import Mock, patch
 
 import requests
 from django.core.management import call_command
-from django.test import TestCase, override_settings
+from django.contrib.auth.models import AnonymousUser
+from django.contrib.sessions.backends.db import SessionStore
+from django.test import RequestFactory, TestCase, override_settings
 
 from .models import EvenementNavigation
+from .services import enregistrer_evenement
 
 
 @override_settings(
@@ -21,7 +24,7 @@ class SendEventsCommandTests(TestCase):
             produit_id=1,
         )
 
-    @patch("analytics.management.commands.envoyer_evenements.requests.post")
+    @patch("analytics.delivery.requests.post")
     def test_sends_event_with_bearer_token_and_marks_it_transmitted(self, post):
         post.return_value = Mock(status_code=201)
 
@@ -42,7 +45,7 @@ class SendEventsCommandTests(TestCase):
         self.assertTrue(self.event.transmis)
         self.assertEqual(self.event.tentatives, 1)
 
-    @patch("analytics.management.commands.envoyer_evenements.requests.post")
+    @patch("analytics.delivery.requests.post")
     def test_keeps_event_pending_after_http_error(self, post):
         response = Mock(status_code=401)
         response.raise_for_status.side_effect = requests.HTTPError("unauthorized")
@@ -54,3 +57,33 @@ class SendEventsCommandTests(TestCase):
         self.assertFalse(self.event.transmis)
         self.assertEqual(self.event.tentatives, 1)
         self.assertTrue(self.event.derniere_erreur)
+
+    @patch("analytics.delivery.requests.post")
+    def test_event_is_sent_immediately_after_analytics_consent(self, post):
+        post.return_value = Mock(status_code=201)
+        request = RequestFactory().get("/produits/")
+        request.user = AnonymousUser()
+        request.session = SessionStore()
+        request.session["analytics_consent"] = True
+        request.session.save()
+
+        event = enregistrer_evenement(request, "page_view")
+
+        post.assert_called_once()
+        self.assertTrue(event.transmis)
+        self.assertEqual(post.call_args.kwargs["json"]["type_evenement"], "page_view")
+
+    @patch("analytics.delivery.requests.post")
+    def test_failed_immediate_delivery_remains_retryable(self, post):
+        post.side_effect = requests.Timeout("receiver unavailable")
+        request = RequestFactory().get("/produits/")
+        request.user = AnonymousUser()
+        request.session = SessionStore()
+        request.session["analytics_consent"] = True
+        request.session.save()
+
+        event = enregistrer_evenement(request, "page_view")
+
+        self.assertFalse(event.transmis)
+        self.assertEqual(event.tentatives, 1)
+        self.assertTrue(event.derniere_erreur)
